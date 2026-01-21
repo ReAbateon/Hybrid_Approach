@@ -112,11 +112,73 @@ No operating system is required, and the generated code can be integrated into b
 
 ## Usage
 
+### Tool Usage
 To start the tool, launch the graphical user interface by running the following command from the project root:
 
 ```bash
 python3 -m Code_Generator.GUI.gui
 ```
+The following graphical user interface will be displayed:
+
+![GUI overview](images/GUI_Overview.png)
+
+From the GUI, the user can configure the following parameters:
+
+- **Dataset selection:** Datasets can be selected using the *Choose CSV* button. The tool stores the most recently used datasets and automatically generates the corresponding `joblib` files in the same directory.
+- **Model:** The model type can be selected between Random Forest and XGBoost.
+- **Number of trees:** The number of trees used for both Random Forest and XGBoost models can be configured.
+- **Maximum depth:** The maximum tree depth parameter is applied only to Random Forest models.
+- **Random seed:** A random seed can be specified to ensure reproducibility of the training process.
+- **Number of test samples:** The number of test samples extracted from the dataset.
+- **Code generation:** The *Hybrid*, *DT-Rec*, and *SIMT* generation buttons allow launching the generation of the corresponding execution approaches.
+
+### Generated Code Usage
+
+The generated C code must be imported into the target embedded project and included in the main application source file.  
+All required headers and dependencies needed for execution are automatically included by the generated code.
+
+To correctly place the generated data structures, it is necessary to initialize the appropriate memory regions in the linker script.  
+An example linker script configuration is provided in the repository and can be used as a reference:
+
+> **Linker script example:** `path/to/linker_script_example.ld`
+
+---
+
+### Available Functions
+
+The generated code exposes the following functions, which can be called directly from the application:
+
+- `inference(int16_t* sample)`  
+  Performs inference on a single input sample using the **Hybrid approach**.  
+  This function should be used when the model size exceeds the total available DTCM memory.
+
+- `inference_RAM(int16_t* sample)`  
+  Performs inference using only the portion of the model allocated in **RAM**.  
+  This function is available only when using **SIMT** or **DT-Rec**, and when the generated model fits entirely within the DTCM memory constraints.
+
+- `inference_DTCM(int16_t* sample)`  
+  Performs inference using only the portion of the model allocated in **DTCM**.  
+  This function is available only when using **SIMT** or **DT-Rec**, and when the generated model fits entirely within the DTCM memory constraints.
+
+- `init_dtrec()`  
+  Initializes the data structures required by the **DT-Rec** kernel when it is enabled.
+
+- `init_dtrec_ram()`  
+  Initializes the **DT-Rec** data structures allocated in RAM.
+
+- `init_dtrec_dtcm()`  
+  Initializes the **DT-Rec** data structures allocated in DTCM.
+
+---
+
+### Output Data
+
+Inference results are stored in the following output arrays:
+
+- `final_results` for the **SIMT** execution model
+- `out` for the **DT-Rec** execution model
+
+
 
 
 
