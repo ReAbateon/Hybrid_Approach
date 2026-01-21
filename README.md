@@ -145,7 +145,7 @@ All required headers and dependencies needed for execution are automatically inc
 To correctly place the generated data structures, it is necessary to initialize the appropriate memory regions in the linker script.  
 An example linker script configuration is provided in the repository and can be used as a reference:
 
-> **Linker script example:** `path/to/linker_script_example.ld`
+> **Linker script example:** `Examples/linker_script_example.ld`
 
 #### Available Functions
 
