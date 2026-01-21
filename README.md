@@ -4,7 +4,7 @@
 > **Note:** This repository was created to support the review of *On the Design of Decision Tree Visiting Kernels at the Edge*, but it is openly available and usable by the community.
 
 ## Overview
-The Hybrid Approach is a strategy presented in the paper *On the Design of Decision Tree Visiting Kernels at the Edge*, designed for modern edge platforms equipped with cache hierarchies and tightly coupled memories (TCM).It relies on partitioning the original decision-tree-based model into two distinct sub-models, each mapped to a different memory region and executed using the kernel best suited to the characteristics of that memory.
+The Hybrid Approach is a strategy presented in the paper *On the Design of Decision Tree Visiting Kernels at the Edge*, designed for modern edge platforms equipped with cache hierarchies and tightly coupled memories (TCM). It relies on partitioning the original decision-tree-based model into two distinct sub-models, each mapped to a different memory region and executed using the kernel best suited to the characteristics of that memory.
 
 Specifically, the sub-model allocated in TCM is executed using a Single Instruction Multiple Trees (SIMT) kernel, which enables parallel evaluation of multiple trees and fully exploits the low-latency and deterministic access of TCM.  
 Conversely, the sub-model placed in Static Random Access Memory (SRAM) is executed using the DT-Rec kernel, a highly optimized and cache-friendly recursive implementation tailored for edge and resource-constrained scenarios.
