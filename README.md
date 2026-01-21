@@ -14,6 +14,7 @@ This repository provides a tool that, starting from a dataset, generates C heade
 ## Key Features
 - Implemented in Python and provided with a graphical user interface (GUI) for ease of use.
 - Generates portable C code that can be directly included in embedded projects.
+- Applies automatic quantization-aware training, converting input data and model parameters to a 16-bit fixed-point representation for efficient embedded execution.
 - Uses a novel Single Instruction Multiple Trees (SIMT) approach that exploits ARM Helium vector extensions to parallelize decision-tree execution.
 - Supports both Random Forest and XGBoost models, handling classification and regression tasks.
 - Implements a hybrid execution strategy by partitioning the model across different memory regions (TCM and SRAM).
@@ -33,6 +34,8 @@ The repository is organized as follows:
 │ 
 ├── Datasets/
 │ └── ... # Example datasets for testing and experimentation
+├── Examples/
+│ └── ... # Example main codes and linker script
 ├── README.md
 └── LICENSE
 ```
@@ -43,6 +46,8 @@ The `Kernels` directory includes the modules responsible for generating C code f
 The `Utils` directory contains utilities for model training, validation, and preprocessing.  
 
 The `Datasets` directory provides example datasets that can be used to quickly test and evaluate the tool.
+
+The `Example` directory provides example code snippets and linker script.
 
 ## Requirements
 
@@ -126,11 +131,11 @@ From the GUI, the user can configure the following parameters:
 
 - **Dataset selection:** Datasets can be selected using the *Choose CSV* button. The tool stores the most recently used datasets and automatically generates the corresponding `joblib` files in the same directory.
 - **Model:** The model type can be selected between Random Forest and XGBoost.
-- **Number of trees:** The number of trees used for both Random Forest and XGBoost models can be configured.
+- **Number of trees:** The number of trees used for both Random Forest and XGBoost models can be configured. A number of multiple of 8 must be used.
 - **Maximum depth:** The maximum tree depth parameter is applied only to Random Forest models.
 - **Random seed:** A random seed can be specified to ensure reproducibility of the training process.
 - **Number of test samples:** The number of test samples extracted from the dataset.
-- **Code generation:** The *Hybrid*, *DT-Rec*, and *SIMT* generation buttons allow launching the generation of the corresponding execution approaches.
+- **Code generation:** The *Hybrid*, *DT-Rec*, and *SIMT* generation buttons allow launching the generation of the corresponding execution approaches. 
 
 ### Generated Code Usage
 
@@ -142,9 +147,7 @@ An example linker script configuration is provided in the repository and can be 
 
 > **Linker script example:** `path/to/linker_script_example.ld`
 
----
-
-### Available Functions
+#### Available Functions
 
 The generated code exposes the following functions, which can be called directly from the application:
 
@@ -169,14 +172,30 @@ The generated code exposes the following functions, which can be called directly
 - `init_dtrec_dtcm()`  
   Initializes the **DT-Rec** data structures allocated in DTCM.
 
----
-
-### Output Data
+#### Output Data
 
 Inference results are stored in the following output arrays:
 
 - `final_results` for the **SIMT** execution model
 - `out` for the **DT-Rec** execution model
+
+### Examples
+
+The repository includes an `Examples` directory containing code snippets that demonstrate how to integrate and use the generated code.
+
+These examples provide ready-to-use portions of code for:
+- Initializing the required memory regions and data structures.
+- Calling the appropriate initialization functions depending on the selected execution model.
+- Help performing inference using the Hybrid, SIMT-only, or DT-Rec-only approaches.
+- Accessing and interpreting the inference output results.
+- Showing how performance are taken from inference.
+
+The provided examples are intended to simplify integration and can be directly adapted to specific embedded projects.
+
+## License
+This project is licensed under the **GNU General Public License v3.0 (GPLv3)**.
+
+For more details, see the `LICENSE` file included in this repository.
 
 
 
