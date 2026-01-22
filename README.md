@@ -35,7 +35,9 @@ The repository is organized as follows:
 ├── Datasets/
 │ └── ... # Example datasets for testing and experimentation
 ├── Examples/
-│ └── ... # Example main codes and linker script
+│ └── ... # Code snippets showing how to use the generated code
+├── Kernels/
+│ └── ... # C implementations of the kernels used in the paper
 ├── README.md
 └── LICENSE
 ```
@@ -48,6 +50,9 @@ The `Utils` directory contains utilities for model training, validation, and pre
 The `Datasets` directory provides example datasets that can be used to quickly test and evaluate the tool.
 
 The `Example` directory provides example code snippets and linker script.
+
+The `Kernels` directory contains the C implementations of the execution kernels used in the paper.  
+These kernels correspond to the implementations evaluated in the paper and can be reused or adapted independently.
 
 ## Requirements
 
