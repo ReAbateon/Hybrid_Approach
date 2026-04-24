@@ -15,7 +15,6 @@ int16_t fast(Triangle *arr, int16_t *sample){
 
 		mve_pred16_t pred = vcmpleq_s16(samp, thresh);
 		int16x8_t dst = vpselq_s16(vdupq_n_s16(1), vdupq_n_s16(0), pred);
-		vst1q_s16(out, dst);
 
 		int32_t index = vmladavaq_s16(0, dst, twos);
 
