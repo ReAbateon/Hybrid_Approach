@@ -24,8 +24,8 @@ This repository provides a tool that, starting from a dataset, generates C heade
 ## Project Structure
 The repository is organized as follows:
 ```text
-├── Code_Generator/
-│ ├── GUI/
+├── Code_Gene/
+│ ├── Gui/
 │ │ └── gui.py # Main Python module providing the graphical user interface
 │ ├── Kernels/
 │ │ └── ... # Modules for kernel-specific C code generation
@@ -42,8 +42,8 @@ The repository is organized as follows:
 └── LICENSE
 ```
 
-The `Code_Generator` directory contains the Python modules composing the core of the tool.  
-The `GUI` subdirectory provides the main entry point for interacting with the tool through a graphical interface.  
+The `Code_Gen` directory contains the Python modules composing the core of the tool.  
+The `Gui` subdirectory provides the main entry point for interacting with the tool through a graphical interface.  
 The `Kernels` directory includes the modules responsible for generating C code for the supported execution kernels.  
 The `Utils` directory contains utilities for model training, validation, and preprocessing.  
 
@@ -68,7 +68,7 @@ To run the code generation tool, the following requirements must be satisfied:
 
 It is recommended to use a virtual environment to manage dependencies and ensure reproducibility.
 
-The tool has been tested on macOS Sequoia 15.6 and Windows 10 Pro.
+The tool has been tested on macOS Sequoia 15.6, Windows 10 Pro, Windows 11 Pro and Ubuntu 24.04 LTS.
 
 #### Python Standard Library
 The following modules are part of the Python standard library and do not require additional installation:
@@ -126,7 +126,7 @@ No operating system is required, and the generated code can be integrated into b
 To start the tool, launch the graphical user interface by running the following command from the project root:
 
 ```bash
-python3 -m Code_Generator.GUI.gui
+python3 -m Code_Gen.GUI.gui
 ```
 The following graphical user interface will be displayed:
 
@@ -140,7 +140,7 @@ From the GUI, the user can configure the following parameters:
 - **Maximum depth:** The maximum tree depth parameter is applied only to Random Forest models.
 - **Random seed:** A random seed can be specified to ensure reproducibility of the training process.
 - **Number of test samples:** The number of test samples extracted from the dataset.
-- **Code generation:** The *Hybrid*, *DT-Rec*, and *SIMT* generation buttons allow launching the generation of the corresponding execution approaches. 
+- **Code generation:** The *HybridL*, *HybridE*, *DT-Rec*, *FAST* and *SIMT* generation buttons allow launching the generation of the corresponding execution approaches. 
 
 ### Generated Code Usage
 
@@ -154,44 +154,25 @@ An example linker script configuration is provided in the repository and can be 
 
 #### Available Functions
 
-The generated code exposes the following functions, which can be called directly from the application:
+The generated code expose the following function, which can be called directly from the application:
 
 - `inference(int16_t* sample)`  
-  Performs inference on a single input sample using the **Hybrid approach**.  
-  This function should be used when the model size exceeds the total available DTCM memory.
-
-- `inference_RAM(int16_t* sample)`  
-  Performs inference using only the portion of the model allocated in **RAM**.  
-  This function is available only when using **SIMT** or **DT-Rec**, and when the generated model fits entirely within the DTCM memory constraints.
-
-- `inference_DTCM(int16_t* sample)`  
-  Performs inference using only the portion of the model allocated in **DTCM**.  
-  This function is available only when using **SIMT** or **DT-Rec**, and when the generated model fits entirely within the DTCM memory constraints.
-
-- `init_dtrec()`  
-  Initializes the data structures required by the **DT-Rec** kernel when it is enabled.
-
-- `init_dtrec_ram()`  
-  Initializes the **DT-Rec** data structures allocated in RAM.
-
-- `init_dtrec_dtcm()`  
-  Initializes the **DT-Rec** data structures allocated in DTCM.
+  Performs inference on a single input sample.  
 
 #### Output Data
 
 Inference results are stored in the following output arrays:
 
-- `final_results` for the **SIMT** execution model
-- `out` for the **DT-Rec** execution model
+- `final_results` for the **SIMT** and **Hybrid** execution model
+- `classes` for the **DT-Rec** and  **FAST** execution model
 
 ### Examples
 
 The repository includes an `Examples` directory containing code snippets that demonstrate how to integrate and use the generated code.
 
 These examples provide ready-to-use portions of code for:
-- Initializing the required memory regions and data structures.
 - Calling the appropriate initialization functions depending on the selected execution model.
-- Help performing inference using the Hybrid, SIMT-only, or DT-Rec-only approaches.
+- Help performing inference.
 - Accessing and interpreting the inference output results.
 - Showing how performance are taken from inference.
 
