@@ -9,7 +9,7 @@ for(int r = 0; r < TEST_ROWS; r++){
     printf("%d: %lu\r\n", r, cyccnt_after - cyccnt_before);
     printf("%d: ", r);
     for (int i = 0; i < TREES; i++) {
-        printf("%d ", out[i]);
+        printf("%d ", classes[i]);
     }
     printf("\r\n");
 }
