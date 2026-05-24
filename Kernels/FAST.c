@@ -1,7 +1,7 @@
 int16_t fast(Triangle *arr, int16_t *sample){
 	//const mve_pred16_t p3 = vctp16q(3);
 	int16x8_t twos = {1, 2, 4, 8, 16, 32, 64, 0};
-	int16_t out[8];
+	
 	int16_t next_index = 1;
 
 	Triangle *tri = &arr[0];

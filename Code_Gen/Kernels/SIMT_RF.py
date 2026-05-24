@@ -1,29 +1,30 @@
-# 
-# Copyright (c) 2026 Lorenzo Abate <lorenzoabate510@gmail.com>.
-# 
-# This program is free software: you can redistribute it and/or modify  
-# it under the terms of the GNU General Public License as published by  
+#
+# Copyright (c) 2026 Lorenzo Abate <lorenzo.abate@unina.it>.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, version 3.
 #
-# This program is distributed in the hope that it will be useful, but 
-# WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License 
+# You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import joblib
 import csv
-import numpy as np
-import shutil
 import os
-
-from pathlib import Path
+import shutil
 from collections import deque
+from pathlib import Path
+
+import joblib
+import numpy as np
 
 import Code_Gen.Utils.trainRF as trainRF
+
 
 def get_nodes_by_level(tree):
     children_left = tree.children_left
@@ -49,7 +50,7 @@ def Parallel_generator(path, txt_name, num_group, fh, groups_hybrid, task=0):
     DELTA = 32767
 
     forest_levels = []
-    
+
     for estimator in model.estimators_:
         tree = estimator.tree_
         levels = get_nodes_by_level(tree)
@@ -59,13 +60,12 @@ def Parallel_generator(path, txt_name, num_group, fh, groups_hybrid, task=0):
 
     with open(txt_name, "w") as f:
         for i in range(0, len(forest_levels), num_group):
-            group = forest_levels[i:i + num_group]
-    
+            group = forest_levels[i : i + num_group]
+
             max_depth = max(len(levels) for (_, levels) in group)
-            
+
             num_nodes = 0
             num_added_nodes = 0
-            
 
             feature_list = []
             threshold_list = []
@@ -73,17 +73,17 @@ def Parallel_generator(path, txt_name, num_group, fh, groups_hybrid, task=0):
             childR_list = []
 
             for level_idx in range(max_depth):
-                #print(f"\n--- Livello {level_idx} del gruppo alberi {i}-{i+num_group-1} ---")
+                # print(f"\n--- Livello {level_idx} del gruppo alberi {i}-{i+num_group-1} ---")
                 for tree_idx, (tree, levels) in enumerate(group):
                     if level_idx < len(levels):
                         node_ids = levels[level_idx]
-                        #print(f"  Albero {i + tree_idx}:")
+                        # print(f"  Albero {i + tree_idx}:")
                         for node_id in node_ids:
                             feature = tree.feature[node_id]
                             threshold = tree.threshold[node_id]
                             left = tree.children_left[node_id]
                             right = tree.children_right[node_id]
-                            if(left == right == -1):
+                            if left == right == -1:
                                 if task == 0:
                                     class_idx = int(np.argmax(tree.value[node_id][0]))
                                 else:
@@ -96,14 +96,18 @@ def Parallel_generator(path, txt_name, num_group, fh, groups_hybrid, task=0):
                             else:
                                 feature_list.append(np.uint16(feature))
                                 threshold_list.append(np.int16(threshold))
-                                childL_list.append(np.uint16((2*num_added_nodes) + num_group))
-                                childR_list.append(np.uint16((2*num_added_nodes) + num_group + 1))
+                                childL_list.append(
+                                    np.uint16((2 * num_added_nodes) + num_group)
+                                )
+                                childR_list.append(
+                                    np.uint16((2 * num_added_nodes) + num_group + 1)
+                                )
                                 num_nodes += 1
                                 num_added_nodes += 1
 
-                            #print(f"Nodo {node_id}: feat={feature}, thresh={threshold:.4f}, sx={left}, dx={right}")
-            
-            f.write(f"Group {i}-{i+num_group-1}   Number of Nodes = {num_nodes}\n")
+                            # print(f"Nodo {node_id}: feat={feature}, thresh={threshold:.4f}, sx={left}, dx={right}")
+
+            f.write(f"Group {i}-{i + num_group - 1}   Number of Nodes = {num_nodes}\n")
             feature_str = ", ".join(str(f) for f in feature_list)
             f.write(f"feature = {feature_str}\n")
             threshold_str = ", ".join(str(t) for t in threshold_list)
@@ -113,40 +117,58 @@ def Parallel_generator(path, txt_name, num_group, fh, groups_hybrid, task=0):
             childR_str = ", ".join(str(c) for c in childR_list)
             f.write(f"childR = {childR_str}\n\n")
 
-            if groups_hybrid == 0:     
-                fh.write(f"RAM_BIG uint16_t feature{groupindex}[{len(feature_list)}] = {{{feature_str}}};\n")
-                fh.write(f"RAM_BIG int16_t threshold{groupindex}[{len(threshold_list)}] = {{{threshold_str}}};\n")
-                fh.write(f"RAM_BIG uint16_t childL{groupindex}[{len(childL_list)}] = {{{childL_str}}};\n")
-                fh.write(f"RAM_BIG uint16_t childR{groupindex}[{len(childR_list)}] = {{{childR_str}}};\n")
+            if groups_hybrid == -1:
+                fh.write(
+                    f"DTCM uint16_t feature_dtcm{groupindex}[{len(feature_list)}] = {{{feature_str}}};\n"
+                )
+                fh.write(
+                    f"DTCM int16_t threshold_dtcm{groupindex}[{len(threshold_list)}] = {{{threshold_str}}};\n"
+                )
+                fh.write(
+                    f"DTCM uint16_t childL_dtcm{groupindex}[{len(childL_list)}] = {{{childL_str}}};\n"
+                )
+                fh.write(
+                    f"DTCM uint16_t childR_dtcm{groupindex}[{len(childR_list)}] = {{{childR_str}}};\n\n"
+                )
 
-                fh.write(f"DTCM uint16_t feature_dtcm{groupindex}[{len(feature_list)}] = {{{feature_str}}};\n")
-                fh.write(f"DTCM int16_t threshold_dtcm{groupindex}[{len(threshold_list)}] = {{{threshold_str}}};\n")
-                fh.write(f"DTCM uint16_t childL_dtcm{groupindex}[{len(childL_list)}] = {{{childL_str}}};\n")
-                fh.write(f"DTCM uint16_t childR_dtcm{groupindex}[{len(childR_list)}] = {{{childR_str}}};\n\n")
-                
                 groupindex += 1
-            elif groups_hybrid > 0:
-                if(groupindex >= groups_hybrid):
-                    fh.write(f"RAM_BIG uint16_t feature{groupindex}[{len(feature_list)}] = {{{feature_str}}};\n")
-                    fh.write(f"RAM_BIG int16_t threshold{groupindex}[{len(threshold_list)}] = {{{threshold_str}}};\n")
-                    fh.write(f"RAM_BIG uint16_t childL{groupindex}[{len(childL_list)}] = {{{childL_str}}};\n")
-                    fh.write(f"RAM_BIG uint16_t childR{groupindex}[{len(childR_list)}] = {{{childR_str}}};\n\n")
+            elif groups_hybrid >= 0:
+                if groupindex >= groups_hybrid:
+                    fh.write(
+                        f"RAM_BIG uint16_t feature{groupindex}[{len(feature_list)}] = {{{feature_str}}};\n"
+                    )
+                    fh.write(
+                        f"RAM_BIG int16_t threshold{groupindex}[{len(threshold_list)}] = {{{threshold_str}}};\n"
+                    )
+                    fh.write(
+                        f"RAM_BIG uint16_t childL{groupindex}[{len(childL_list)}] = {{{childL_str}}};\n"
+                    )
+                    fh.write(
+                        f"RAM_BIG uint16_t childR{groupindex}[{len(childR_list)}] = {{{childR_str}}};\n\n"
+                    )
 
                     groupindex += 1
                 else:
-                    fh.write(f"DTCM uint16_t feature_dtcm{groupindex}[{len(feature_list)}] = {{{feature_str}}};\n")
-                    fh.write(f"DTCM int16_t threshold_dtcm{groupindex}[{len(threshold_list)}] = {{{threshold_str}}};\n")
-                    fh.write(f"DTCM uint16_t childL_dtcm{groupindex}[{len(childL_list)}] = {{{childL_str}}};\n")
-                    fh.write(f"DTCM uint16_t childR_dtcm{groupindex}[{len(childR_list)}] = {{{childR_str}}};\n\n")
+                    fh.write(
+                        f"DTCM uint16_t feature_dtcm{groupindex}[{len(feature_list)}] = {{{feature_str}}};\n"
+                    )
+                    fh.write(
+                        f"DTCM int16_t threshold_dtcm{groupindex}[{len(threshold_list)}] = {{{threshold_str}}};\n"
+                    )
+                    fh.write(
+                        f"DTCM uint16_t childL_dtcm{groupindex}[{len(childL_list)}] = {{{childL_str}}};\n"
+                    )
+                    fh.write(
+                        f"DTCM uint16_t childR_dtcm{groupindex}[{len(childR_list)}] = {{{childR_str}}};\n\n"
+                    )
 
                     groupindex += 1
-
 
 
 def generate_header(groups, sample_size, parallelism, test_rows):
     return f"""\
 #ifndef INC_SIMT_H_
-#define INC_SIMT_H_    
+#define INC_SIMT_H_
 
 #include "arm_mve.h"
 #include "string.h"
@@ -170,6 +192,7 @@ typedef struct{{
 uint16_t final_results[GROUPS * PARALLELISM];
 
 """
+
 
 def generate_kernel():
     return f"""\
@@ -211,14 +234,15 @@ classes kernel_simt(int16_t* threshold, uint16_t* features, uint16_t* childL, ui
 
 """
 
-def generate_inference_hybrid(fh, groups, groups_hybrid):
+
+def generate_inference(fh, groups, groups_hybrid):
     fh.write("static inline void inference(int16_t* sample){\n")
     fh.write("   uint8_t i = 0;\n")
     fh.write("   classes myclass;\n")
 
     lines = []
     for i in range(groups):
-        if i < groups_hybrid:
+        if groups_hybrid == -1 or i < groups_hybrid:
             line = f"   myclass = kernel_simt(threshold_dtcm{i}, feature_dtcm{i}, childL_dtcm{i}, childR_dtcm{i}, sample);\n"
             lines.append(line)
         else:
@@ -231,38 +255,6 @@ def generate_inference_hybrid(fh, groups, groups_hybrid):
     fh.writelines(lines)
     fh.write("}\n\n")
 
-def generate_inference(fh, groups): 
-    fh.write("static inline void inference_ram(int16_t* sample){\n")
-    fh.write("   uint8_t i = 0;\n")
-    fh.write("   classes myclass;\n")
-    
-    lines = []
-    for i in range(groups):
-        line = f"   myclass = kernel_simt(threshold{i}, feature{i}, childL{i}, childR{i}, sample);\n"
-        lines.append(line)
-        line = "   memcpy(&final_results[i], myclass.class, sizeof(uint16_t) * PARALLELISM);\n"
-        lines.append(line)
-        line = "   i += PARALLELISM;\n\n"
-        lines.append(line)
-    
-    fh.writelines(lines)
-    fh.write("}\n\n")
-
-    fh.write("static inline void inference_dtcm(int16_t* sample){\n")
-    fh.write("   uint8_t i = 0;\n")
-    fh.write("   classes myclass;\n")
-    
-    lines = []
-    for i in range(groups):
-        line = f"   myclass = kernel_simt(threshold_dtcm{i}, feature_dtcm{i}, childL_dtcm{i}, childR_dtcm{i}, sample);\n"
-        lines.append(line)
-        line = f"   memcpy(&final_results[i], myclass.class, sizeof(uint16_t) * PARALLELISM);\n"
-        lines.append(line)
-        line = f"   i += PARALLELISM;\n\n"
-        lines.append(line)
-    
-    fh.writelines(lines)
-    fh.write("}\n\n")
 
 def testset_gen(csv_path, fh, n_rows):
     fh.write("int16_t testset[TEST_ROWS][SAMPLE_SIZE] = {\n")
@@ -284,34 +276,76 @@ def testset_gen(csv_path, fh, n_rows):
 
     fh.write("};\n\n")
 
-def generate_simt(path, number_of_trees, max_depth, random_seed, parallelism, number_of_test_samples):
-    test_path, joblib_path, sample_size, hybrid, csv_stem, task = trainRF.training(path, number_of_trees, max_depth, random_seed, number_of_test_samples)
-    
-    groups = number_of_trees/parallelism
+
+def generate_simt(
+    path, number_of_trees, max_depth, random_seed, parallelism, number_of_test_samples
+):
+    test_path, joblib_path, sample_size, task, accuracy, mse, mae, r2, csv_stem = (
+        trainRF.training(
+            path, number_of_trees, max_depth, random_seed, number_of_test_samples
+        )
+    )
+
+    model = joblib.load(joblib_path)
+    total_nodes = 0
+    size_bytes = 0
+    hybrid_tree_index = -1
+
+    for i, estimator in enumerate(model.estimators_):
+        nodes = estimator.tree_.node_count
+        total_nodes += nodes
+        size_bytes += nodes * 8  # 8 bytes per node for SIMT
+
+        if size_bytes > 130000 and hybrid_tree_index == -1:
+            hybrid_tree_index = i
+
+    size_kb = size_bytes / 1024
+
+    print(f"Model Stats:")
+    print(f"  - Total Nodes: {total_nodes}")
+    print(f"  - Dimension: {size_bytes} Bytes ({size_kb:.2f} KB)")
+    if task == 0:
+        print(f"  - Accuracy: {accuracy:.4f}")
+    else:
+        print(f"  - MSE: {mse:.4f}")
+        print(f"  - MAE: {mae:.4f}")
+        print(f"  - R2:  {r2:.4f}")
+
+    groups = number_of_trees / parallelism
     groups = int(groups)
     print(f"  - Groups: {groups}")
 
     models_path = Path(f"Models/{csv_stem}/simt_RF_G{groups}_D{max_depth}")
     os.makedirs(models_path, exist_ok=True)
 
-    if(hybrid > 0):
+    if hybrid_tree_index != -1:
         print("The model doesn't fit in DTCM. Proceeding with the hybrid approach...")
-        groups_hybrid = hybrid // parallelism
-        print(f"Only {hybrid} trees / {groups_hybrid} groups will fit in DTCM!")
-        header_name = f"{csv_stem}_RF_simt_hybrid_G{groups}_D{max_depth}_RS{random_seed}.h"
-        txt_name = f"{csv_stem}_RF_simt_hybrid_G{groups}_D{max_depth}_RS{random_seed}.txt"
-        
+        groups_hybrid = hybrid_tree_index // parallelism
+        print(
+            f"Only {hybrid_tree_index} trees / {groups_hybrid} groups will fit in DTCM!"
+        )
+        header_name = (
+            f"{csv_stem}_RF_simt_hybrid_G{groups}_D{max_depth}_RS{random_seed}.h"
+        )
+        txt_name = (
+            f"{csv_stem}_RF_simt_hybrid_G{groups}_D{max_depth}_RS{random_seed}.txt"
+        )
+
         header_path = models_path / header_name
         txt_path = models_path / txt_name
 
-        header = generate_header(groups, sample_size, parallelism, number_of_test_samples)
+        header = generate_header(
+            groups, sample_size, parallelism, number_of_test_samples
+        )
         kernel = generate_kernel()
 
         with open(header_path, "w") as f:
             f.write(header)
-            Parallel_generator(joblib_path, txt_path, parallelism, f, groups_hybrid, task)
+            Parallel_generator(
+                joblib_path, txt_path, parallelism, f, groups_hybrid, task
+            )
             f.write(kernel)
-            generate_inference_hybrid(f, groups, groups_hybrid)
+            generate_inference(f, groups, groups_hybrid)
             testset_gen(test_path, f, number_of_test_samples)
             f.write("#endif\n")
     else:
@@ -322,14 +356,15 @@ def generate_simt(path, number_of_trees, max_depth, random_seed, parallelism, nu
         header_path = models_path / header_name
         txt_path = models_path / txt_name
 
-        header = generate_header(groups, sample_size, parallelism, number_of_test_samples)
+        header = generate_header(
+            groups, sample_size, parallelism, number_of_test_samples
+        )
         kernel = generate_kernel()
 
         with open(header_path, "w") as f:
             f.write(header)
-            Parallel_generator(joblib_path, txt_path, parallelism, f, 0, task)
+            Parallel_generator(joblib_path, txt_path, parallelism, f, -1, task)
             f.write(kernel)
-            generate_inference(f, groups)
+            generate_inference(f, groups, -1)
             testset_gen(test_path, f, number_of_test_samples)
             f.write("#endif\n")
- 

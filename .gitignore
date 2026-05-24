@@ -1,0 +1,6 @@
+.venv/
+.Models/
+.MMMM/
+.Code_Gen/Gui/__pycache__/
+.Code_Gen/Kernels/__pycache__/
+.Code_Gen/Utils/__pycache__/

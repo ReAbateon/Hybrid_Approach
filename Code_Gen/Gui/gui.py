@@ -1,5 +1,5 @@
 # 
-# Copyright (c) 2026 Lorenzo Abate <lorenzoabate510@gmail.com>.
+# Copyright (c) 2026 Lorenzo Abate <lorenzo.abate@unina.it>.
 # 
 # This program is free software: you can redistribute it and/or modify  
 # it under the terms of the GNU General Public License as published by  
@@ -27,8 +27,12 @@ from Code_Gen.Kernels import SIMT_RF as simt
 from Code_Gen.Kernels import SIMT_XGBoost as simtxgb
 from Code_Gen.Kernels import DT_Rec_RF as dtreccodegen
 from Code_Gen.Kernels import DT_Rec_XGBoost as dtrecxgb
-from Code_Gen.Kernels import Hybrid_RF as final
-from Code_Gen.Kernels import Hybrid_XGBoost as finalxgb
+from Code_Gen.Kernels import FAST_RF as fastrf
+from Code_Gen.Kernels import FAST_XGBoost as fastxgb
+from Code_Gen.Kernels import HybridL_RF as final
+from Code_Gen.Kernels import HybridL_XGBoost as finalxgb
+from Code_Gen.Kernels import HybridE_RF as finalenergy
+from Code_Gen.Kernels import HybridE_XGBoost as finalenergyxgb
 
 APP_TITLE = "The Code Generator"
 RECENT_FILE = Path.home() / ".csv_gui_recent.json"
@@ -122,13 +126,54 @@ def start_dtrec_thread():
 
     t = threading.Thread(target=dt_rec_worker, daemon=True)
     t.start()
- 
+
+def on_fast_done(success: bool, error: str = ""):
+    fast_button.config(state="normal")
+
+    if success:
+        print("FAST Generation Completed.")
+    else:
+        messagebox.showerror("Generation Error", error or "Unknown Error")
+
+def start_fast_thread():
+    fast_button.config(state="disabled")
+
+    try:
+        csv_path = Path(csv_var.get()).expanduser().resolve()
+        n_trees  = int(n_estimators_var.get())
+        max_d    = int(max_depth_var.get())      
+        seed     = int(random_state_var.get())
+        tsize    = int(test_size_var.get())
+        
+    except Exception as e:
+        dtrec_button.config(state="normal")
+        messagebox.showerror("Invalid Parameters", str(e))
+        return
+
+    model = combo.get()
+
+    def fast_worker():
+        try:
+            if(model == "Random Forest"):
+                print("Starting FAST generation with Random Forest...")
+                fastrf.generate_fast(csv_path, n_trees, max_d, seed, tsize)
+                root.after(0, on_fast_done, True, "")
+            elif(model == "XGBoost"):
+                print("Starting FAST generation with XGBoost...")
+                fastxgb.generate_fast(csv_path, n_trees, seed, tsize)
+                root.after(0, on_fast_done, True, "")
+        except Exception as ex:
+            err_text = "".join(traceback.format_exception(type(ex), ex, ex.__traceback__))
+            root.after(0, on_fast_done, False, err_text)
+
+    t = threading.Thread(target=fast_worker, daemon=True)
+    t.start()
 
 def on_final_done(success: bool, error: str = ""):
     final_button.config(state="normal")
 
     if success:
-        print("Hybrid Generation Completed.")
+        print("Hybrid Latency Generation Completed.")
     else:
         messagebox.showerror("Generation Error", error or "Unknown Error")
 
@@ -153,12 +198,12 @@ def start_final_thread():
     def final_worker():
         try:
             if(model == "Random Forest"):
-                print("Starting Hybrid generation with Random Forest...")
-                final.generate_final(csv_path, n_trees, max_d, seed, parallel, tsize)
+                print("Starting Hybrid Latency generation with Random Forest...")
+                final.generate_hybrid_rf(csv_path, n_trees, max_d, seed, parallel, tsize)
                 root.after(0, on_final_done, True, "")
             elif(model == "XGBoost"):
-                print("Starting Hybrid generation with XGBoost...")
-                finalxgb.generate_final(csv_path, n_trees, seed, parallel, tsize)
+                print("Starting Hybrid Latency generation with XGBoost...")
+                finalxgb.generate_hybrid_xgb(csv_path, n_trees, max_d, seed, parallel, tsize)
                 root.after(0, on_final_done, True, "")
 
         except Exception as ex:
@@ -166,6 +211,50 @@ def start_final_thread():
             root.after(0, on_final_done, False, err_text)
 
     t = threading.Thread(target=final_worker, daemon=True)
+    t.start()
+
+def on_finalenergy_done(success: bool, error: str = ""):
+    finalenergy_button.config(state="normal")
+
+    if success:
+        print("Hybrid Energy Generation Completed.")
+    else:
+        messagebox.showerror("Generation Error", error or "Unknown Error")
+
+def start_finalenergy_thread():
+    finalenergy_button.config(state="disabled")
+
+    try:
+        csv_path = Path(csv_var.get()).expanduser().resolve()
+        n_trees  = int(n_estimators_var.get())
+        max_d    = int(max_depth_var.get())      
+        seed     = int(random_state_var.get())
+        parallel = int(parallelism_var.get())      
+        tsize    = int(test_size_var.get())
+        
+    except Exception as e:
+        finalenergy_button.config(state="normal")
+        messagebox.showerror("Invalid Parameters", str(e))
+        return
+
+    model = combo.get()
+
+    def finalenergy_worker():
+        try:
+            if(model == "Random Forest"):
+                print("Starting Hybrid Energy generation with Random Forest...")
+                finalenergy.generate_hybrid_rf(csv_path, n_trees, max_d, seed, parallel, tsize)
+                root.after(0, on_finalenergy_done, True, "")
+            elif(model == "XGBoost"):
+                print("Starting Hybrid Energy generation with XGBoost...")
+                finalenergyxgb.generate_hybrid_xgb(csv_path, n_trees, max_d, seed, parallel, tsize)
+                root.after(0, on_finalenergy_done, True, "")
+
+        except Exception as ex:
+            err_text = "".join(traceback.format_exception(type(ex), ex, ex.__traceback__))
+            root.after(0, on_finalenergy_done, False, err_text)
+
+    t = threading.Thread(target=finalenergy_worker, daemon=True)
     t.start()
 
 
@@ -276,9 +365,10 @@ ttk.Button(main, text="Choose CSV…", command=scegli_csv).grid(row=0, column=2,
 # Parameters
 test_size_var = tk.StringVar(value="1000")
 n_estimators_var = tk.StringVar(value="32")
-random_state_var = tk.StringVar(value="42")
+random_state_var = tk.StringVar(value="1")
 max_depth_var = tk.StringVar(value="10")
 parallelism_var = tk.StringVar(value="8")
+energy_var = tk.BooleanVar(value=False)
 
 ttk.Label(main, text="Number of Trees:").grid(row=1, column=0, sticky="w", padx=(0,8), pady=4)
 ttk.Entry(main, textvariable=n_estimators_var, width=12).grid(row=1, column=1, sticky="w", pady=4)
@@ -304,9 +394,13 @@ btns = ttk.Frame(main)
 btns.grid(row=4, column=0, columnspan=3, sticky="e", pady=(12,8))
 simt_button = ttk.Button(btns, text="SIMT Generation", command=start_simt_thread)
 simt_button.pack(side="right")
+fast_button = ttk.Button(btns, text="FAST Generation", command=start_fast_thread)
+fast_button.pack(side="right", padx=(0,8))
 dtrec_button = ttk.Button(btns, text="DT Rec Generation", command=start_dtrec_thread)
 dtrec_button.pack(side="right", padx=(0,8))
-final_button = ttk.Button(btns, text="Hybrid Generation", command=start_final_thread)
+finalenergy_button = ttk.Button(btns, text="HybridE Generation", command=start_finalenergy_thread)
+finalenergy_button.pack(side="right", padx=(0,8))
+final_button = ttk.Button(btns, text="HybridL Generation", command=start_final_thread)
 final_button.pack(side="right", padx=(0,8))
 
 # Separator
