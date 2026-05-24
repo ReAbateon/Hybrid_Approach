@@ -2,8 +2,6 @@
 
 #include "dt_rec.h"
 
-
-init_ram()
 for(int r = 0; r < TEST_ROWS; r++){
     cyccnt_before = DWT->CYCCNT;
     inference_ram(testset[r]);
@@ -16,7 +14,6 @@ for(int r = 0; r < TEST_ROWS; r++){
     printf("\r\n");
 }
 
-init_dtcm()
 for(int r = 0; r < TEST_ROWS; r++){
     cyccnt_before = DWT->CYCCNT;
     inference_dtcm(testset[r]);

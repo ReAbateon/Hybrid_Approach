@@ -263,9 +263,7 @@ def load_recents():
     try:
         if RECENT_FILE.exists():
             data = json.loads(RECENT_FILE.read_text(encoding="utf-8"))
-            # tieni solo path esistenti e normalizzati
             data = [str(Path(p).resolve()) for p in data if Path(p).exists()]
-            # de-duplica preservando l'ordine
             seen, out = set(), []
             for p in data:
                 if p not in seen:
@@ -422,6 +420,6 @@ sys.stdout = ConsoleOutput(console_text)
 
 refresh_csv_combo()
 if RECENT_FILE.exists():
-    print(f"[INFO] Recents loaded from: {RECENT_FILE}\n")
+    print("[INFO] Recents loaded\n")
 
 root.mainloop()

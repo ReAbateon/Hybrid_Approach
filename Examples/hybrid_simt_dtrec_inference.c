@@ -2,7 +2,6 @@
 
 #include "hybrid.h"
 
-init_dtrec();
 for(int r = 0; r < TEST_ROWS; r++){
     cyccnt_before = DWT->CYCCNT;
     inference(testset[r]);

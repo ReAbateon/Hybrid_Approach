@@ -5,7 +5,7 @@ MEMORY
   RAM    (xrw)    : ORIGIN = 0x341C0000,   LENGTH = 256K
   RAM_DTCM (xrw)  : ORIGIN = 0x20000000,   LENGTH = 128K
   
-  RAM_BIG (xrw)   : ORIGIN = 0x24100000, LENGTH = 300K
+  RAM_BIG (xrw)   : ORIGIN = 0x24000000, LENGTH = 1024K
 }
 
 /* Sections */
