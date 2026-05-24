@@ -1,4 +1,4 @@
-// Example of inference using the Hybrid Approach, with SIMT execution in DTCM and DT-Rec execution in SRAM.
+// Example of inference using the Hybrid Approach
 
 #include "hybrid.h"
 

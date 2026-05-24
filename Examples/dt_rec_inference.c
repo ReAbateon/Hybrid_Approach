@@ -1,4 +1,4 @@
-// Example of inference using a full DT Rec Hybrid Approach, with DT Rec execution in DTCM and DT Rec execution in SRAM.
+// Example of inference using DT Rec
 
 #include "dtrec.h"
 
