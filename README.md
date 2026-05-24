@@ -24,7 +24,7 @@ This repository provides a tool that, starting from a dataset, generates C heade
 ## Project Structure
 The repository is organized as follows:
 ```text
-├── Code_Gene/
+├── Code_Gen/
 │ ├── Gui/
 │ │ └── gui.py # Main Python module providing the graphical user interface
 │ ├── Kernels/
@@ -126,7 +126,7 @@ No operating system is required, and the generated code can be integrated into b
 To start the tool, launch the graphical user interface by running the following command from the project root:
 
 ```bash
-python3 -m Code_Gen.GUI.gui
+python3 -m Code_Gen.Gui.gui
 ```
 The following graphical user interface will be displayed:
 
@@ -140,7 +140,7 @@ From the GUI, the user can configure the following parameters:
 - **Maximum depth:** The maximum tree depth parameter is applied only to Random Forest models.
 - **Random seed:** A random seed can be specified to ensure reproducibility of the training process.
 - **Number of test samples:** The number of test samples extracted from the dataset.
-- **Code generation:** The *HybridL*, *HybridE*, *DT-Rec*, *FAST* and *SIMT* generation buttons allow launching the generation of the corresponding execution approaches. 
+- **Code generation:** The *HybridL (Latency)*, *HybridE (Energy)*, *DT-Rec*, *FAST* and *SIMT* generation buttons allow launching the generation of the corresponding execution approaches. 
 
 ### Generated Code Usage
 
