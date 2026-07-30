@@ -178,6 +178,26 @@ These examples provide ready-to-use portions of code for:
 
 The provided examples are intended to simplify integration and can be directly adapted to specific embedded projects.
 
+---
+
+## 📜 Citation
+
+If you use this work or codebase in your research, please consider citing our paper published in the **IEEE Internet of Things Journal**:
+
+> **L. Abate, M. Barbareschi, and A. Emmanuele**, *"On the Design of Decision Tree Visiting Kernels at the Edge,"* in **IEEE Internet of Things Journal**, 2026, doi: [10.1109/JIOT.2026.3718321](https://doi.org/10.1109/JIOT.2026.3718321). *(Early Access)*
+
+```bibtex
+@ARTICLE{11627878,
+  author={Abate, Lorenzo and Barbareschi, Mario and Emmanuele, Antonio},
+  journal={IEEE Internet of Things Journal}, 
+  title={On the Design of Decision Tree Visiting Kernels at the Edge}, 
+  year={2026},
+  volume={},
+  number={},
+  pages={1-1},
+  doi={10.1109/JIOT.2026.3718321}
+}
+
 ## License
 This project is licensed under the **GNU General Public License v3.0 (GPLv3)**.
 
