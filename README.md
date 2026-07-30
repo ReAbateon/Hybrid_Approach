@@ -178,9 +178,7 @@ These examples provide ready-to-use portions of code for:
 
 The provided examples are intended to simplify integration and can be directly adapted to specific embedded projects.
 
----
-
-## 📜 Citation
+## Citation
 
 If you use this work or codebase in your research, please consider citing our paper published in the **IEEE Internet of Things Journal**:
 
