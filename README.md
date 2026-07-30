@@ -195,7 +195,7 @@ If you use this work or codebase in your research, please consider citing our pa
   pages={1-1},
   doi={10.1109/JIOT.2026.3718321}
 }
-
+```
 ## License
 This project is licensed under the **GNU General Public License v3.0 (GPLv3)**.
 
